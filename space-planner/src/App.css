@@ -134,3 +134,42 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Delete button for objects */
+.delete-btn {
+  float: right;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 16px;
+  text-align: center;
+  padding: 0;
+  margin-left: 5px;
+  transition: background 0.2s;
+}
+
+.delete-btn:hover {
+  background: darkred;
+}
+
+/* Adjust list item to position delete button nicely */
+.furniture-item, .deadspace-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 3px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background: #222;
+}
+
+.furniture-item:hover, .deadspace-item:hover {
+  background: #333;
+}
