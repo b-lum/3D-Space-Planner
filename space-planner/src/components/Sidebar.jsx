@@ -4,129 +4,112 @@ import "../App.css"
 function Sidebar({
   selectedId,
   setSelectedId,
-  objects,
-  setObjects,
-  deadSpaces,
-  setDeadSpaces,
+  room,
+  setRooms,
   newItemType,
   setNewItemType,
   newItemProps,
   setNewItemProps,
   startPlacingItem
 }) {
+  if (!room) return null // safety check
+
+  const updateItem = (id, updates, type) => {
+    setRooms(prev =>
+      prev.map(r => {
+        if (r.id !== room.id) return r
+        if (type === "furniture") {
+          return { ...r, objects: r.objects.map(o => (o.id === id ? { ...o, ...updates } : o)) }
+        } else {
+          return { ...r, deadSpaces: r.deadSpaces.map(o => (o.id === id ? { ...o, ...updates } : o)) }
+        }
+      })
+    )
+  }
+
+  const deleteItem = (id, type) => {
+    setRooms(prev =>
+      prev.map(r => {
+        if (r.id !== room.id) return r
+        if (type === "furniture") {
+          return { ...r, objects: r.objects.filter(o => o.id !== id) }
+        } else {
+          return { ...r, deadSpaces: r.deadSpaces.filter(o => o.id !== id) }
+        }
+      })
+    )
+    if (selectedId === id) setSelectedId(null)
+  }
+
+  const allItems = [...room.objects, ...room.deadSpaces]
+  const selectedItem = allItems.find(i => i.id === selectedId)
+
   return (
     <div className="sidebar">
-      {selectedId ? (
+      {selectedItem ? (
         <>
-          {/* Edit Selected Item */}
           <h3>Edit Selected Item</h3>
-          {(() => {
-            const item = [...objects, ...deadSpaces].find((obj) => obj.id === selectedId)
-            if (!item) return null
-
-            return (
-              <>
-                <div>
-                  <label>Width:</label>
-                  <input
-                    type="number"
-                    value={item.width}
-                    onChange={(e) => {
-                      const newWidth = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, width: newWidth } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, width: newWidth } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <label>Depth:</label>
-                  <input
-                    type="number"
-                    value={item.depth}
-                    onChange={(e) => {
-                      const newDepth = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, depth: newDepth } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, depth: newDepth } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <label>Height:</label>
-                  <input
-                    type="number"
-                    value={item.height}
-                    onChange={(e) => {
-                      const newHeight = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, height: newHeight } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, height: newHeight } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
-                {item.type === "furniture" && (
-                  <div>
-                    <label>Color:</label>
-                    <input
-                      type="color"
-                      value={item.color}
-                      onChange={(e) => {
-                        const newColor = e.target.value
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, color: newColor } : o))
-                        )
-                      }}
-                    />
-                  </div>
-                )}
-                <button onClick={() => setSelectedId(null)}>Done Editing</button>
-              </>
-            )
-          })()}
+          <div>
+            <label>Width:</label>
+            <input
+              type="number"
+              value={selectedItem.width}
+              onChange={e => updateItem(selectedItem.id, { width: parseFloat(e.target.value) }, selectedItem.type)}
+            />
+          </div>
+          <div>
+            <label>Depth:</label>
+            <input
+              type="number"
+              value={selectedItem.depth}
+              onChange={e => updateItem(selectedItem.id, { depth: parseFloat(e.target.value) }, selectedItem.type)}
+            />
+          </div>
+          <div>
+            <label>Height:</label>
+            <input
+              type="number"
+              value={selectedItem.height}
+              onChange={e => updateItem(selectedItem.id, { height: parseFloat(e.target.value) }, selectedItem.type)}
+            />
+          </div>
+          {selectedItem.type === "furniture" && (
+            <div>
+              <label>Color:</label>
+              <input
+                type="color"
+                value={selectedItem.color}
+                onChange={e => updateItem(selectedItem.id, { color: e.target.value }, "furniture")}
+              />
+            </div>
+          )}
+          <button onClick={() => setSelectedId(null)}>Done Editing</button>
         </>
       ) : (
         <>
-          {/* Add New Object */}
           <h3>Add Object</h3>
           <div>
             <label>Name:</label>
             <input
               type="text"
               value={newItemProps.name || ""}
-              onChange={(e) => setNewItemProps({ ...newItemProps, name: e.target.value })}
+              onChange={e => setNewItemProps({ ...newItemProps, name: e.target.value })}
               placeholder="Enter object name"
             />
           </div>
-          <label>Type:</label>
-          <select value={newItemType} onChange={(e) => setNewItemType(e.target.value)}>
-            <option value="furniture">Furniture</option>
-            <option value="deadspace">Dead Space</option>
-          </select>
+          <div>
+            <label>Type:</label>
+            <select value={newItemType} onChange={e => setNewItemType(e.target.value)}>
+              <option value="furniture">Furniture</option>
+              <option value="deadspace">Dead Space</option>
+            </select>
+          </div>
           <div>
             <label>Width:</label>
             <input
               type="number"
               value={newItemProps.width}
-              onChange={(e) => setNewItemProps({ ...newItemProps, width: parseFloat(e.target.value) })}
+              onChange={e => setNewItemProps({ ...newItemProps, width: parseFloat(e.target.value) })}
             />
           </div>
           <div>
@@ -134,7 +117,7 @@ function Sidebar({
             <input
               type="number"
               value={newItemProps.depth}
-              onChange={(e) => setNewItemProps({ ...newItemProps, depth: parseFloat(e.target.value) })}
+              onChange={e => setNewItemProps({ ...newItemProps, depth: parseFloat(e.target.value) })}
             />
           </div>
           <div>
@@ -142,7 +125,7 @@ function Sidebar({
             <input
               type="number"
               value={newItemProps.height}
-              onChange={(e) => setNewItemProps({ ...newItemProps, height: parseFloat(e.target.value) })}
+              onChange={e => setNewItemProps({ ...newItemProps, height: parseFloat(e.target.value) })}
             />
           </div>
           {newItemType === "furniture" && (
@@ -151,7 +134,7 @@ function Sidebar({
               <input
                 type="color"
                 value={newItemProps.color}
-                onChange={(e) => setNewItemProps({ ...newItemProps, color: e.target.value })}
+                onChange={e => setNewItemProps({ ...newItemProps, color: e.target.value })}
               />
             </div>
           )}
@@ -159,10 +142,9 @@ function Sidebar({
         </>
       )}
 
-      {/* Object List */}
       <h3>Objects in Room</h3>
       <ul>
-        {objects.map((obj) => (
+        {room.objects.map(obj => (
           <li key={obj.id} className="furniture-item">
             <span
               onClick={() => setSelectedId(obj.id)}
@@ -170,12 +152,12 @@ function Sidebar({
             >
               {obj.id} (Furniture)
             </span>
-            <button className="delete-btn" onClick={() => setObjects(objects.filter((o) => o.id !== obj.id))}>
+            <button className="delete-btn" onClick={() => deleteItem(obj.id, "furniture")}>
               ×
             </button>
           </li>
         ))}
-        {deadSpaces.map((ds) => (
+        {room.deadSpaces.map(ds => (
           <li key={ds.id} className="deadspace-item">
             <span
               onClick={() => setSelectedId(ds.id)}
@@ -183,7 +165,7 @@ function Sidebar({
             >
               {ds.id} (Dead Space)
             </span>
-            <button className="delete-btn" onClick={() => setDeadSpaces(deadSpaces.filter((d) => d.id !== ds.id))}>
+            <button className="delete-btn" onClick={() => deleteItem(ds.id, "deadspace")}>
               ×
             </button>
           </li>

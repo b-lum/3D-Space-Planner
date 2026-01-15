@@ -1,47 +1,133 @@
 import { useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Grid } from "@react-three/drei"
-import DeadSpace from "./components/DeadSpace"
-import Object3D from "./components/Object3D"
+
 import Room from "./components/Room"
+import Object3D from "./components/Object3D"
+import DeadSpace from "./components/DeadSpace"
 import Sidebar from "./components/Sidebar"
+
 import "./App.css"
+
+/* ---------- ROOM FACTORY ---------- */
+function createRoom({ id, name, width, depth, height }) {
+  return {
+    id,
+    name,
+    dimensions: { width, depth, height },
+    objects: [],
+    deadSpaces: [],
+  }
+}
 
 function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [dragging, setDragging] = useState(false)
   const [placingItem, setPlacingItem] = useState(null)
 
-  const [objects, setObjects] = useState([
-    { id: "desk", width: 2, depth: 1, height: 1, position: [-2, 0, 0], color: "skyblue", type: "furniture" },
-  ])
-
-  const [deadSpaces, setDeadSpaces] = useState([
-    { id: "door1", position: [0, 0, 0], width: 1, depth: 0.2, height: 0.1, type: "deadspace" },
-
-  ])
-
   const [newItemType, setNewItemType] = useState("furniture")
-  const [newItemProps, setNewItemProps] = useState({ width: 1, depth: 1, height: 1, color: "orange", name: "" })
+  const [newItemProps, setNewItemProps] = useState({
+    width: 1,
+    depth: 1,
+    height: 1,
+    color: "orange",
+    name: "",
+  })
 
-  const ROOM = { width: 10, depth: 8, height: 3 }
+  /* ---------- ROOMS ---------- */
+  const [rooms, setRooms] = useState([
+    createRoom({
+      id: "room-1",
+      name: "Main Room",
+      width: 10,
+      depth: 8,
+      height: 3,
+    }),
+  ])
 
-  const startPlacingItem = () => {
-    const id = newItemProps.name?.trim() || `${newItemType}-${Date.now()}`
-    const newItem = { id, type: newItemType, ...newItemProps, position: [0, 0, 0] }
-    setPlacingItem(newItem)
-    setNewItemProps({ width: 1, depth: 1, height: 1, color: "orange", name: "" })
+  const [activeRoomId, setActiveRoomId] = useState("room-1")
+  const activeRoom = rooms.find(r => r.id === activeRoomId)
+  if (!activeRoom) return null
+
+  function getRandomColor() {
+    // returns a random hex color string like "#a3f4d1"
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
 
-  // Collision & update functions (same as before)
-  const aabbOverlap = (pos1, w1, d1, pos2, w2, d2) => { /* ... */ }
-  const checkCollision = (id, newPos, rotation = 0) => { /* ... */ }
-  const updatePosition = (id, newPosition, newRotation = 0) => { /* ... */ }
+  function checkCollision(pos1, size1, pos2, size2) {
+    const [x1, z1] = pos1
+    const [w1, d1] = size1
+    const [x2, z2] = pos2
+    const [w2, d2] = size2
+
+    return (
+      Math.abs(x1 - x2) < (w1 + w2) / 2 &&
+      Math.abs(z1 - z2) < (d1 + d2) / 2
+    )
+  }
+  /* ---------- PLACEMENT ---------- */
+  const startPlacingItem = () => {
+    const id = newItemProps.name.trim() || `${newItemType}-${Date.now()}`
+
+
+    const color = newItemType === "furniture" 
+      ? newItemProps.color || getRandomColor()  // <-- random if no color
+      : undefined
+
+    setPlacingItem({
+      id,
+      type: newItemType,
+      ...newItemProps,
+      color,
+      position: [0, 0, 0],
+      rotation: 0, // default rotation
+    })
+    setNewItemProps({
+      width: 1,
+      depth: 1,
+      height: 1,
+      color: "orange",
+      name: "",
+    })
+  }
+
   const addPlacedItem = () => {
     if (!placingItem) return
-    if (placingItem.type === "furniture") setObjects([...objects, placingItem])
-    else setDeadSpaces([...deadSpaces, placingItem])
+
+    setRooms(prev =>
+      prev.map(room => {
+        if (room.id !== activeRoomId) return room
+
+        if (placingItem.type === "furniture") {
+          return { ...room, objects: [...room.objects, placingItem] }
+        }
+        return { ...room, deadSpaces: [...room.deadSpaces, placingItem] }
+      })
+    )
     setPlacingItem(null)
+  }
+
+  /* ---------- POSITION UPDATES ---------- */
+  const updatePosition = (id, newPosition, newRotation = 0) => {
+    setRooms(prev =>
+      prev.map(room => {
+        if (room.id !== activeRoomId) return room
+
+        const objects = room.objects.map(o =>
+          o.id === id ? { ...o, position: newPosition, rotation: newRotation } : o
+        )
+        const deadSpaces = room.deadSpaces.map(ds =>
+          ds.id === id ? { ...ds, position: newPosition, rotation: newRotation } : ds
+        )
+
+        return { ...room, objects, deadSpaces }
+      })
+    )
   }
 
   return (
@@ -49,10 +135,9 @@ function App() {
       <Sidebar
         selectedId={selectedId}
         setSelectedId={setSelectedId}
-        objects={objects}
-        setObjects={setObjects}
-        deadSpaces={deadSpaces}
-        setDeadSpaces={setDeadSpaces}
+        room={activeRoom}
+        setRooms={setRooms}
+        activeRoomId={activeRoomId}
         newItemType={newItemType}
         setNewItemType={setNewItemType}
         newItemProps={newItemProps}
@@ -64,30 +149,76 @@ function App() {
         <Canvas camera={{ position: [8, 6, 8] }} onPointerMissed={() => setSelectedId(null)}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} />
-          <Room width={ROOM.width} depth={ROOM.depth} height={ROOM.height} />
 
+          <Room dimensions={activeRoom.dimensions} />
+
+          {/* Placement Preview */}
           {placingItem && (
             <>
               <mesh
                 rotation={[-Math.PI / 2, 0, 0]}
-                onPointerMove={(e) => {
-                  e.stopPropagation()
+                onPointerMove={e =>
                   setPlacingItem({ ...placingItem, position: [e.point.x, 0, e.point.z] })
+                }
+                onClick={e => {
+                  e.stopPropagation()
+                  addPlacedItem()
                 }}
-                onClick={(e) => { e.stopPropagation(); addPlacedItem() }}
               >
                 <planeGeometry args={[100, 100]} />
                 <meshBasicMaterial visible={false} />
               </mesh>
-              <mesh position={[placingItem.position[0], placingItem.height / 2, placingItem.position[2]]}>
-                <boxGeometry args={[placingItem.width, placingItem.height, placingItem.depth]} />
-                <meshStandardMaterial color={placingItem.type === "furniture" ? "orange" : "red"} opacity={0.5} transparent />
+
+              <mesh
+                position={[
+                  placingItem.position[0],
+                  placingItem.height / 2,
+                  placingItem.position[2],
+                ]}
+                rotation={[0, placingItem.rotation, 0]}
+              >
+                <boxGeometry
+                  args={[placingItem.width, placingItem.height, placingItem.depth]}
+                />
+                <meshStandardMaterial
+                  color={placingItem.type === "furniture" ? "orange" : "red"}
+                  opacity={0.5}
+                  transparent
+                />
               </mesh>
             </>
           )}
 
-          {deadSpaces.map((ds) => <DeadSpace key={ds.id} {...ds} color={selectedId === ds.id ? "hotpink" : "red"} />)}
-          {objects.map((obj) => <Object3D key={obj.id} {...obj} room={ROOM} selectedId={selectedId} setSelectedId={setSelectedId} updatePosition={updatePosition} dragging={dragging} setDragging={setDragging} />)}
+          {/* Dead Spaces */}
+          {activeRoom.deadSpaces.map(ds => (
+            <Object3D
+              key={ds.id}
+              {...ds}
+              room={activeRoom.dimensions}
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+              dragging={dragging}
+              setDragging={setDragging}
+              updatePosition={updatePosition} // draggable
+              highlight={selectedId === ds.id}
+              overrideColor="red"
+            />
+          ))}
+
+          {/* Furniture */}
+          {activeRoom.objects.map(obj => (
+            <Object3D
+              key={obj.id}
+              {...obj}
+              room={activeRoom.dimensions}
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+              dragging={dragging}
+              setDragging={setDragging}
+              updatePosition={updatePosition}
+              highlight={selectedId === obj.id}
+            />
+          ))}
 
           <Grid args={[20, 20]} />
           <OrbitControls enabled={!dragging} />
