@@ -16,6 +16,7 @@ function Object3D({
   dragging,
   setDragging,
   rotation: initialRotation = 0, // in radians
+  highlight = false, // new prop for highlighting
 }) {
   const isSelected = id === selectedId
   const meshRef = useRef()
@@ -66,10 +67,9 @@ function Object3D({
     const handleKeyDown = (e) => {
       if (!isSelected) return
       if (e.key.toLowerCase() === "r") {
-        // Rotate 90 degrees clockwise
         const newRotation = rotation + Math.PI / 2
         setRotation(newRotation)
-        updatePosition(id, position, newRotation) // pass new rotation
+        updatePosition(id, position, newRotation)
       }
     }
     window.addEventListener("keydown", handleKeyDown)
@@ -95,13 +95,13 @@ function Object3D({
     <mesh
       ref={meshRef}
       position={[position[0], height / 2, position[2]]}
-      rotation={[0, rotation, 0]} // apply rotation around Y
+      rotation={[0, rotation, 0]}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
       <boxGeometry args={[width, height, depth]} />
-      <meshStandardMaterial color={isSelected ? "hotpink" : color} />
+      <meshStandardMaterial color={highlight || isSelected ? "yellow" : color} />
     </mesh>
   )
 }
