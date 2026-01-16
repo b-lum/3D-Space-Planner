@@ -69,63 +69,37 @@ function Sidebar({
 
             return (
               <>
-                <div>
-                  <label>Width:</label>
-                  <input
-                    type="number"
-                    value={item.width}
-                    onChange={(e) => {
-                      const newWidth = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, width: newWidth } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, width: newWidth } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <label>Depth:</label>
-                  <input
-                    type="number"
-                    value={item.depth}
-                    onChange={(e) => {
-                      const newDepth = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, depth: newDepth } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, depth: newDepth } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <label>Height:</label>
-                  <input
-                    type="number"
-                    value={item.height}
-                    onChange={(e) => {
-                      const newHeight = parseFloat(e.target.value)
-                      if (item.type === "furniture") {
-                        setObjects((objs) =>
-                          objs.map((o) => (o.id === selectedId ? { ...o, height: newHeight } : o))
-                        )
-                      } else {
-                        setDeadSpaces((ds) =>
-                          ds.map((o) => (o.id === selectedId ? { ...o, height: newHeight } : o))
-                        )
-                      }
-                    }}
-                  />
-                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+  {["width", "depth", "height"].map((key) => (
+    <div key={key} style={{ display: "flex", flexDirection: "column" }}>
+      <label style={{ fontSize: "12px" }}>
+        {key.charAt(0).toUpperCase() + key.slice(1)}
+      </label>
+      <input
+        type="number"
+        value={item[key]}
+        style={{ width: "60px" }}
+        onChange={(e) => {
+          const value = parseFloat(e.target.value)
+          if (item.type === "furniture") {
+            setObjects((objs) =>
+              objs.map((o) =>
+                o.id === selectedId ? { ...o, [key]: value } : o
+              )
+            )
+          } else {
+            setDeadSpaces((ds) =>
+              ds.map((o) =>
+                o.id === selectedId ? { ...o, [key]: value } : o
+              )
+            )
+          }
+        }}
+      />
+    </div>
+  ))}
+</div>
+
                 {item.type === "furniture" && (
                   <div>
                     <label>Color:</label>
@@ -164,30 +138,53 @@ function Sidebar({
             <option value="furniture">Furniture</option>
             <option value="deadspace">Dead Space</option>
           </select>
-          <div>
-            <label>Width:</label>
-            <input
-              type="number"
-              value={newItemProps.width}
-              onChange={(e) => setNewItemProps({ ...newItemProps, width: parseFloat(e.target.value) })}
-            />
-          </div>
-          <div>
-            <label>Depth:</label>
-            <input
-              type="number"
-              value={newItemProps.depth}
-              onChange={(e) => setNewItemProps({ ...newItemProps, depth: parseFloat(e.target.value) })}
-            />
-          </div>
-          <div>
-            <label>Height:</label>
-            <input
-              type="number"
-              value={newItemProps.height}
-              onChange={(e) => setNewItemProps({ ...newItemProps, height: parseFloat(e.target.value) })}
-            />
-          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    <label style={{ fontSize: "12px" }}>Width</label>
+    <input
+      type="number"
+      value={newItemProps.width}
+      style={{ width: "60px" }}
+      onChange={(e) =>
+        setNewItemProps({
+          ...newItemProps,
+          width: parseFloat(e.target.value),
+        })
+      }
+    />
+  </div>
+
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    <label style={{ fontSize: "12px" }}>Depth</label>
+    <input
+      type="number"
+      value={newItemProps.depth}
+      style={{ width: "60px" }}
+      onChange={(e) =>
+        setNewItemProps({
+          ...newItemProps,
+          depth: parseFloat(e.target.value),
+        })
+      }
+    />
+  </div>
+
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    <label style={{ fontSize: "12px" }}>Height</label>
+    <input
+      type="number"
+      value={newItemProps.height}
+      style={{ width: "60px" }}
+      onChange={(e) =>
+        setNewItemProps({
+          ...newItemProps,
+          height: parseFloat(e.target.value),
+        })
+      }
+    />
+  </div>
+</div>
+
           {newItemType === "furniture" && (
             <div>
               <label>Color:</label>
