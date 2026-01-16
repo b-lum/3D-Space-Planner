@@ -1,3 +1,9 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #f0f0f0; /* match app-container */
+}
+
 /* App container */
 .app-container {
   display: flex;
