@@ -114,6 +114,8 @@
 /* Canvas container */
 .canvas-container {
   flex: 1;
+  min-width: 700px;
+  max-width: 1400px;
   background: #1a1a1a;
 }
 
@@ -137,17 +139,19 @@
 
 /* Delete button for objects */
 .delete-btn {
-  float: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: red;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 10px;
-  height: 10px;
+  width: 16px;       /* actual width */
+  height: 16px;      /* match height */
   cursor: pointer;
   font-weight: bold;
-  line-height: 16px;
-  text-align: center;
+  font-size: 12px;   /* fit nicely */
+  line-height: 1;    /* prevent stretching */
   padding: 0;
   margin-left: 5px;
   transition: background 0.2s;
