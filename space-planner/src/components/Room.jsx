@@ -12,25 +12,25 @@ function Room({ width = 10, depth = 8, height = 3 }) {
       {/* Back Wall */}
       <mesh position={[0, height / 2, -depth / 2]}>
         <boxGeometry args={[width, height, wallThickness]} />
-        <meshStandardMaterial color="#cccccc" />
+        <meshStandardMaterial color="hsla(0, 0%, 80%, 0.51)" />
       </mesh>
 
       {/* Front Wall */}
       <mesh position={[0, height / 2, depth / 2]}>
         <boxGeometry args={[width, height, wallThickness]} />
-        <meshStandardMaterial color="#cccccc" />
+        <meshStandardMaterial color="hsla(0, 0%, 80%, 0.26)" />
       </mesh>
 
       {/* Left Wall */}
       <mesh position={[-width / 2, height / 2, 0]}>
         <boxGeometry args={[wallThickness, height, depth]} />
-        <meshStandardMaterial color="#cccccc" />
+        <meshStandardMaterial color="hsla(0, 0%, 80%, 0.51)" />
       </mesh>
 
       {/* Right Wall */}
       <mesh position={[width / 2, height / 2, 0]}>
         <boxGeometry args={[wallThickness, height, depth]} />
-        <meshStandardMaterial color="#cccccc" />
+        <meshStandardMaterial color="hsla(0, 0%, 80%, 0.51)" />
       </mesh>
     </>
   )

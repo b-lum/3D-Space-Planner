@@ -11,6 +11,8 @@ function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [dragging, setDragging] = useState(false)
   const [placingItem, setPlacingItem] = useState(null)
+  const [roomDimensions, setRoomDimensions] = useState({ width: 10, depth: 8, height: 3 }); // <-- new
+
 
   const [objects, setObjects] = useState([
     { id: "desk", width: 2, depth: 1, height: 1, position: [-2, 0, 0], color: "skyblue", type: "furniture" },
@@ -24,7 +26,7 @@ function App() {
   const [newItemType, setNewItemType] = useState("furniture")
   const [newItemProps, setNewItemProps] = useState({ width: 1, depth: 1, height: 1, color: "orange", name: "" })
 
-  const ROOM = { width: 10, depth: 8, height: 3 }
+  const ROOM = roomDimensions;
 
   const startPlacingItem = () => {
     const id = newItemProps.name?.trim() || `${newItemType}-${Date.now()}`
@@ -34,9 +36,44 @@ function App() {
   }
 
   // Collision & update functions (same as before)
-  const aabbOverlap = (pos1, w1, d1, pos2, w2, d2) => { /* ... */ }
-  const checkCollision = (id, newPos, rotation = 0) => { /* ... */ }
-  const updatePosition = (id, newPosition, newRotation = 0) => { /* ... */ }
+  
+// AABB overlap check on XZ plane
+const aabbOverlap = (pos1, w1, d1, pos2, w2, d2) => {
+  return (
+    Math.abs(pos1[0] - pos2[0]) < (w1 + w2) / 2 &&
+    Math.abs(pos1[2] - pos2[2]) < (d1 + d2) / 2
+  )
+}
+
+// Check if a new position would collide with other objects or dead spaces
+const checkCollision = (id, newPos, objWidth, objDepth) => {
+  // Check collision with furniture
+  for (let obj of objects) {
+    if (obj.id === id) continue // skip self
+    if (aabbOverlap(newPos, objWidth, objDepth, obj.position, obj.width, obj.depth)) {
+      return true
+    }
+  }
+
+  // Check collision with dead spaces
+  for (let ds of deadSpaces) {
+    if (ds.id === id) continue
+    if (aabbOverlap(newPos, objWidth, objDepth, ds.position, ds.width, ds.depth)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+  const updatePosition = (id, newPosition, newRotation = 0) => {
+    setObjects(prev =>
+      prev.map(obj =>
+        obj.id === id ? { ...obj, position: newPosition, rotation: newRotation } : obj
+      )
+    )
+  }
+
   const addPlacedItem = () => {
     if (!placingItem) return
     if (placingItem.type === "furniture") setObjects([...objects, placingItem])
@@ -58,6 +95,8 @@ function App() {
         newItemProps={newItemProps}
         setNewItemProps={setNewItemProps}
         startPlacingItem={startPlacingItem}
+        roomDimensions={roomDimensions}            
+        setRoomDimensions={setRoomDimensions}
       />
 
       <div className="canvas-container">
@@ -87,7 +126,19 @@ function App() {
           )}
 
           {deadSpaces.map((ds) => <DeadSpace key={ds.id} {...ds} color={selectedId === ds.id ? "hotpink" : "red"} />)}
-          {objects.map((obj) => <Object3D key={obj.id} {...obj} room={ROOM} selectedId={selectedId} setSelectedId={setSelectedId} updatePosition={updatePosition} dragging={dragging} setDragging={setDragging} />)}
+          {objects.map((obj) => (
+  <Object3D
+    key={obj.id}
+    {...obj}
+    room={ROOM}
+    selectedId={selectedId}
+    setSelectedId={setSelectedId}
+    updatePosition={updatePosition}
+    dragging={dragging}
+    setDragging={setDragging}
+    checkCollision={checkCollision} // <-- pass this in
+  />
+))}
 
           <Grid args={[20, 20]} />
           <OrbitControls enabled={!dragging} />

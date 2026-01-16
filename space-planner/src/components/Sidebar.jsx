@@ -12,10 +12,53 @@ function Sidebar({
   setNewItemType,
   newItemProps,
   setNewItemProps,
-  startPlacingItem
-}) {
+  startPlacingItem,
+  roomDimensions,
+  setRoomDimensions,
+  }) {
+
+    const handleDimensionChange = (e) => {
+    const { name, value } = e.target
+    setRoomDimensions(prev => ({ ...prev, [name]: parseFloat(value) || 0 }))
+  }
+  
   return (
     <div className="sidebar">
+
+      <h3>Room Dimensions</h3>
+<div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+  <div>
+    <label>Width:</label>
+    <input
+      type="number"
+      name="width"
+      value={roomDimensions.width}
+      onChange={handleDimensionChange}
+      style={{ width: "60px" }}
+    />
+  </div>
+  <div>
+    <label>Depth:</label>
+    <input
+      type="number"
+      name="depth"
+      value={roomDimensions.depth}
+      onChange={handleDimensionChange}
+      style={{ width: "60px" }}
+    />
+  </div>
+  <div>
+    <label>Height:</label>
+    <input
+      type="number"
+      name="height"
+      value={roomDimensions.height}
+      onChange={handleDimensionChange}
+      style={{ width: "60px" }}
+    />
+  </div>
+</div>
+
       {selectedId ? (
         <>
           {/* Edit Selected Item */}

@@ -15,8 +15,9 @@ function Object3D({
   updatePosition,
   dragging,
   setDragging,
-  rotation: initialRotation = 0, // in radians
-  highlight = false, // new prop for highlighting
+  rotation: initialRotation = 0,
+  highlight = false,
+  checkCollision, // <--- add here
 }) {
   const isSelected = id === selectedId
   const meshRef = useRef()
@@ -28,19 +29,16 @@ function Object3D({
 
   // Dragging logic
   const onPointerDown = (e) => {
-    e.stopPropagation()
-    if (!dragging) {
-      setSelectedId(id)
-      setDragging(true)
+  e.stopPropagation()
+  setSelectedId(id)
+  setDragging(true)
+  e.target.setPointerCapture(e.pointerId)
 
-      e.target.setPointerCapture(e.pointerId)
-
-      raycaster.setFromCamera(mouse, camera)
-      const intersection = new THREE.Vector3()
-      raycaster.ray.intersectPlane(floorPlane, intersection)
-      setDragOffset([position[0] - intersection.x, position[2] - intersection.z])
-    }
-  }
+  raycaster.setFromCamera(mouse, camera)
+  const intersection = new THREE.Vector3()
+  raycaster.ray.intersectPlane(floorPlane, intersection)
+  setDragOffset([position[0] - intersection.x, position[2] - intersection.z])
+}
 
   const onPointerMove = (e) => {
     if (!dragging || !isSelected) return
@@ -49,18 +47,22 @@ function Object3D({
     const intersection = new THREE.Vector3()
     raycaster.ray.intersectPlane(floorPlane, intersection)
 
-    const [clampedX, clampedZ] = clampToRoom(
-      intersection.x + dragOffset[0],
-      intersection.z + dragOffset[1]
-    )
+    const newX = intersection.x + dragOffset[0]
+    const newZ = intersection.z + dragOffset[1]
 
-    updatePosition(id, [clampedX, 0, clampedZ], rotation)
+    const [clampedX, clampedZ] = clampToRoom(newX, newZ)
+
+    // Use checkCollision passed from App.js
+    if (!checkCollision(id, [clampedX, 0, clampedZ], width, depth)) {
+      updatePosition(id, [clampedX, 0, clampedZ], rotation)
+    }
   }
 
-  const onPointerUp = (e) => {
-    setDragging(false)
-    e.target.releasePointerCapture(e.pointerId)
-  }
+
+const onPointerUp = (e) => {
+  setDragging(false)
+  e.target.releasePointerCapture(e.pointerId)
+}
 
   // Rotation handler
   useEffect(() => {
