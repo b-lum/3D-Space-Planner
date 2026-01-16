@@ -4,7 +4,7 @@
   height: 100vh;
   font-family: Arial, sans-serif;
   color: #f0f0f0;
-  background: #121212;
+  background: #f0f0f0;
 }
 
 /* Sidebar styling */
@@ -116,7 +116,7 @@
   flex: 1;
   min-width: 700px;
   max-width: 1400px;
-  background: #1a1a1a;
+  background: #f0f0f0;
 }
 
 /* Optional: Scrollbar styling for sidebar */

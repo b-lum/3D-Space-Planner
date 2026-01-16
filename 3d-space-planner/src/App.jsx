@@ -183,7 +183,13 @@ function App() {
             />
           ))}
 
-          <Grid args={[20, 20]} />
+          <Grid
+            args={[20, 20]}
+            position={[0, 0.01, 0]}
+            cellColor="black"
+            sectionColor="gray"
+            sectionThickness={1}
+          />
           <OrbitControls enabled={!dragging} />
         </Canvas>
       </div>
